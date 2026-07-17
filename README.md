@@ -49,25 +49,18 @@ To enable GitHub integrations within the app, you need to provide a GitHub PAT:
 
 ## 📱 Mobile Installation (Android)
 
-1. **Prerequisites**
-   Make sure Android Studio is installed and either an Android emulator is running, or a physical Android device is connected with USB debugging enabled.
+You can install DevGate directly on your Android device without needing to build from source:
 
-2. **Install Dependencies**
-   ```bash
-   flutter pub get
-   ```
+1. **Download the APK**
+   Navigate to the [Releases](https://github.com/Venkatesh-107/DevGate/releases) section of this repository.
+   Download the latest `app-release.apk` file to your Android device.
 
-3. **Run on Android Device / Emulator**
-   ```bash
-   flutter run -d android
-   ```
+2. **Enable Unknown Sources**
+   If this is your first time installing an APK manually, go to your phone's **Settings** -> **Security** (or **Apps**) and enable **Install unknown apps** for your web browser or file manager.
 
-4. **Build APK for Distribution**
-   If you want to generate an installable APK file:
-   ```bash
-   flutter build apk --release
-   ```
-   *You can find the generated APK at: `build/app/outputs/flutter-apk/app-release.apk`*
+3. **Install the App**
+   Open the downloaded `app-release.apk` file and tap **Install**.
+   Once installed, you can launch DevGate directly from your app drawer!
 
 ---
 
