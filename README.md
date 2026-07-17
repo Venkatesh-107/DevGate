@@ -1,83 +1,81 @@
-# GeteDiv
+# 🚀 DevGate (GeteDiv)
 
-A cross-platform mobile application with Dart as the primary language, enhanced with C++ and native platform support.
-
-## 📋 Project Overview
-
-GeteDiv is a mobile application built with a strong focus on performance and native integration.
-
-### Language Composition
-- **Dart**: 62.9% - Primary development language
-- **C++**: 19.8% - Performance-critical components
-- **CMake**: 14.1% - Build configuration
-- **Swift**: 2% - iOS-specific features
-- **C**: 1.1% - Native bindings
-- **Kotlin**: 0.1% - Android-specific utilities
-
-## 🎬 Demo
-
-![GeteDiv Demo](https://your-gif-url-here.gif)
-
-> Add your GIF demonstration here to showcase the app's features and functionality.
+A modern, highly-performant cross-platform application built with Flutter & Dart, integrated with a C++ backend for native and intensive tasks.
 
 ## ✨ Features
+- **Cross-Platform**: Works seamlessly on Desktop (Windows, Linux, macOS) and Mobile (Android, iOS).
+- **Git Integration**: Built-in GitHub Personal Access Token (PAT) support for robust repository management.
+- **High Performance**: Leverages C++ and native bindings for core operations.
 
-- Cross-platform support (iOS & Android)
-- High-performance C++ backend
-- Native platform integrations
-- Modern Dart/Flutter frontend
+---
 
-## 🚀 Getting Started
+## 💻 Desktop Installation (Windows / Linux / macOS)
 
-### Prerequisites
-- Flutter SDK
-- Dart SDK
-- C++ compiler
-- CMake 3.0+
-
-### Installation
-
-1. Clone the repository
+1. **Clone the Repository**
    ```bash
-   git clone https://github.com/Venkatesh-107/GeteDiv.git
-   cd GeteDiv
+   git clone https://github.com/Venkatesh-107/DevGate.git
+   cd DevGate
    ```
 
-2. Install dependencies
+2. **Install Dependencies**
    ```bash
    flutter pub get
    ```
 
-3. Build the project
+3. **Run on Desktop**
+   Ensure you have the required desktop development tools installed (e.g., Visual Studio for Windows, Xcode for macOS, CMake/Ninja for Linux).
    ```bash
-   flutter build
+   flutter run -d windows  # Use linux or macos based on your OS
    ```
 
-## 📱 Supported Platforms
-
-- iOS (with Swift integration)
-- Android (with Kotlin support)
-
-## 🛠️ Development
-
-The project structure includes:
-- Dart/Flutter code for UI and business logic
-- C++ modules for performance-critical operations
-- Native platform-specific code (Swift/Kotlin)
-- CMake build scripts for native compilation
-
-## 📝 License
-
-[Add your license information here]
-
-## 👨‍💻 Author
-
-[Venkatesh-107](https://github.com/Venkatesh-107)
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+4. **Build Release Version**
+   ```bash
+   flutter build windows   # Use linux or macos based on your OS
+   ```
 
 ---
 
-**Note:** Update the GIF URL in the Demo section with your actual demonstration GIF URL.
+## 🔑 How to Add Your GitHub PAT (Personal Access Token)
+
+To enable GitHub integrations within the app, you need to provide a GitHub PAT:
+
+1. Open GitHub and go to **Settings** -> **Developer settings** -> **Personal access tokens** -> **Tokens (classic)**.
+2. Click **Generate new token (classic)**.
+3. Give it a descriptive name (e.g., `DevGate App`) and ensure you select the `repo` scope to allow full control of private repositories.
+4. Generate the token and **copy it immediately** (it will not be shown again).
+5. Open DevGate, navigate to the **Settings** or the **Git Interface**, and paste your PAT in the token field to authenticate.
+
+---
+
+## 📱 Mobile Installation (Android)
+
+1. **Prerequisites**
+   Make sure Android Studio is installed and either an Android emulator is running, or a physical Android device is connected with USB debugging enabled.
+
+2. **Install Dependencies**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Run on Android Device / Emulator**
+   ```bash
+   flutter run -d android
+   ```
+
+4. **Build APK for Distribution**
+   If you want to generate an installable APK file:
+   ```bash
+   flutter build apk --release
+   ```
+   *You can find the generated APK at: `build/app/outputs/flutter-apk/app-release.apk`*
+
+---
+
+## 🛠️ Tech Stack
+- **UI & Logic**: Flutter & Dart (62.9%)
+- **Performance Modules**: C++ (19.8%), C (1.1%)
+- **Platform Specifics**: Swift (iOS), Kotlin (Android)
+- **Build Configuration**: CMake
+
+## 🤝 Contributing
+Contributions are always welcome! Feel free to open a pull request or submit issues.
