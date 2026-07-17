@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'core/theme/app_theme.dart';
+import 'data/local/secure_storage_service.dart';
 import 'ui/dashboard/dashboard_screen.dart';
 import 'ui/onboarding/onboarding_screen.dart';
 
@@ -52,7 +52,6 @@ class RootScreen extends StatefulWidget {
 }
 
 class _RootScreenState extends State<RootScreen> {
-  final _storage = const FlutterSecureStorage();
   bool _isLoading = true;
   bool _hasProfile = false;
 
@@ -63,12 +62,10 @@ class _RootScreenState extends State<RootScreen> {
   }
 
   Future<void> _checkProfile() async {
-    final name = await _storage.read(key: 'user_name');
-    final pat = await _storage.read(key: 'github_access_token');
-    
+    final hasProfile = await storageService.hasProfile();
     setState(() {
-      _hasProfile = name != null && name.isNotEmpty && pat != null && pat.isNotEmpty;
-      _isLoading = false;
+      _hasProfile = hasProfile;
+      _isLoading  = false;
     });
   }
 

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-/// Result of any git operation
+/// Result of any git operation.
 class GitResult {
   final bool success;
   final String output;
@@ -13,21 +13,35 @@ class GitResult {
   });
 }
 
-/// Represents a file changed in the working tree
+/// Represents a file changed in the working tree.
 class GitFile {
-  final String status; // 'M', 'A', 'D', '?', etc.
+  final String status; // 'M', 'A', 'D', '?', 'R', etc.
   final String path;
 
   const GitFile({required this.status, required this.path});
 
   String get statusLabel {
     switch (status.trim()) {
-      case 'M': return 'Modified';
-      case 'A': return 'Added';
-      case 'D': return 'Deleted';
-      case '?': return 'Untracked';
-      case 'R': return 'Renamed';
-      default: return status;
+      case 'M':  return 'Modified';
+      case 'A':  return 'Added';
+      case 'D':  return 'Deleted';
+      case '?':  return 'Untracked';
+      case 'R':  return 'Renamed';
+      case 'C':  return 'Copied';
+      case 'U':  return 'Unmerged';
+      default:   return status;
+    }
+  }
+
+  /// Color hint for UI — returned as a simple string token.
+  String get statusColor {
+    switch (status.trim()) {
+      case 'M':  return 'orange';
+      case 'A':  return 'green';
+      case 'D':  return 'red';
+      case 'R':  return 'blue';
+      case 'U':  return 'purple';
+      default:   return 'grey';
     }
   }
 }
@@ -47,21 +61,22 @@ class GitEngine {
         workingDirectory: cwd ?? workingDir,
         environment: {
           ...Platform.environment,
-          // Prevent git from opening an editor for commit messages
+          // Prevent git from opening an editor or asking for credentials.
           'GIT_TERMINAL_PROMPT': '0',
+          'GIT_EDITOR': 'true',
         },
       );
       return GitResult(
         success: result.exitCode == 0,
         output: result.stdout.toString().trim(),
-        error: result.stderr.toString().trim(),
+        error:  result.stderr.toString().trim(),
       );
     } catch (e) {
       return GitResult(success: false, output: '', error: e.toString());
     }
   }
 
-  // ─── Repo Detection ─────────────────────────────────────────────────────────
+  // ─── Repo detection ─────────────────────────────────────────────────────────
 
   Future<bool> isGitRepo() async {
     final result = await _run(['rev-parse', '--is-inside-work-tree']);
@@ -102,36 +117,95 @@ class GitEngine {
     return result.success ? result.output : 'No remote';
   }
 
-  Future<String> log({int count = 5}) async {
+  Future<String> log({int count = 10}) async {
     final result = await _run([
       'log',
       '--oneline',
+      '--decorate',
       '-$count',
     ]);
     return result.success ? result.output : '';
   }
 
+  // ─── Branch management ──────────────────────────────────────────────────────
+
+  /// Returns a list of all local branch names.
+  Future<List<String>> listBranches() async {
+    final result = await _run(['branch', '--format=%(refname:short)']);
+    if (!result.success || result.output.isEmpty) return [];
+    return result.output
+        .split('\n')
+        .map((b) => b.trim())
+        .where((b) => b.isNotEmpty)
+        .toList();
+  }
+
+  /// Creates and switches to a new branch.
+  Future<GitResult> createBranch(String name) =>
+      _run(['checkout', '-b', name]);
+
+  /// Switches to an existing branch.
+  Future<GitResult> switchBranch(String name) =>
+      _run(['checkout', name]);
+
+  /// Deletes a local branch. Use [force] to force-delete (`-D`).
+  Future<GitResult> deleteBranch(String name, {bool force = false}) =>
+      _run(['branch', force ? '-D' : '-d', name]);
+
+  // ─── Diff ───────────────────────────────────────────────────────────────────
+
+  /// Returns the unified diff for uncommitted changes.
+  /// If [filePath] is provided, limits diff to that file.
+  Future<String> diff({String? filePath}) async {
+    final args = ['diff', 'HEAD'];
+    if (filePath != null) args.add(filePath);
+    final result = await _run(args);
+    return result.output;
+  }
+
+  /// Returns the diff for staged (cached) changes.
+  Future<String> diffStaged({String? filePath}) async {
+    final args = ['diff', '--cached'];
+    if (filePath != null) args.add(filePath);
+    final result = await _run(args);
+    return result.output;
+  }
+
   // ─── Staging ─────────────────────────────────────────────────────────────────
 
-  Future<GitResult> addAll() => _run(['add', '.']);
+  Future<GitResult> addAll()                            => _run(['add', '.']);
+  Future<GitResult> addFile(String path)                => _run(['add', path]);
+  Future<GitResult> addFiles(List<String> paths)        => _run(['add', ...paths]);
+  Future<GitResult> resetFile(String path)              => _run(['restore', '--staged', path]);
+  Future<GitResult> discardFile(String path)            => _run(['checkout', '--', path]);
 
-  Future<GitResult> addFile(String filePath) => _run(['add', filePath]);
+  // ─── Stash ───────────────────────────────────────────────────────────────────
 
-  Future<GitResult> addFiles(List<String> filePaths) => _run(['add', ...filePaths]);
+  Future<GitResult> stash({String? message}) {
+    final args = ['stash', 'push'];
+    if (message != null) args.addAll(['-m', message]);
+    return _run(args);
+  }
 
-  Future<GitResult> resetFile(String filePath) => _run(['restore', '--staged', filePath]);
+  Future<GitResult> stashPop()  => _run(['stash', 'pop']);
+  Future<GitResult> stashList() => _run(['stash', 'list']);
 
   // ─── Commit ──────────────────────────────────────────────────────────────────
 
-  Future<GitResult> commit(String message) {
-    return _run(['commit', '-m', message]);
-  }
+  Future<GitResult> commit(String message) =>
+      _run(['commit', '-m', message]);
 
-  // ─── Remote Ops ──────────────────────────────────────────────────────────────
+  Future<GitResult> amendCommit(String message) =>
+      _run(['commit', '--amend', '-m', message]);
 
-  Future<GitResult> push({String remote = 'origin', String? branch}) async {
+  // ─── Remote ops ──────────────────────────────────────────────────────────────
+
+  Future<GitResult> push({String remote = 'origin', String? branch, bool setUpstream = false}) async {
     final b = branch ?? await currentBranch();
-    return _run(['push', remote, b]);
+    final args = ['push'];
+    if (setUpstream) args.addAll(['-u']);
+    args.addAll([remote, b]);
+    return _run(args);
   }
 
   Future<GitResult> pull({String remote = 'origin', String? branch}) async {
@@ -139,21 +213,20 @@ class GitEngine {
     return _run(['pull', remote, b]);
   }
 
-  // ─── Init & Clone ────────────────────────────────────────────────────────────
+  Future<GitResult> fetchAll() => _run(['fetch', '--all', '--prune']);
 
-  Future<GitResult> init({String? initialBranch = 'main'}) {
-    return _run(['init', '--initial-branch=$initialBranch']);
-  }
+  // ─── Init & clone ────────────────────────────────────────────────────────────
 
-  Future<GitResult> addRemote(String url, {String name = 'origin'}) {
-    return _run(['remote', 'add', name, url]);
-  }
+  Future<GitResult> init({String? initialBranch = 'main'}) =>
+      _run(['init', '--initial-branch=$initialBranch']);
 
-  Future<GitResult> setRemoteUrl(String url, {String name = 'origin'}) {
-    return _run(['remote', 'set-url', name, url]);
-  }
+  Future<GitResult> addRemote(String url, {String name = 'origin'}) =>
+      _run(['remote', 'add', name, url]);
 
-  /// Clone a repo into [destinationPath]
+  Future<GitResult> setRemoteUrl(String url, {String name = 'origin'}) =>
+      _run(['remote', 'set-url', name, url]);
+
+  /// Clones a repository into `destinationPath`. Static — no working dir needed.
   static Future<GitResult> clone(String url, String destinationPath) async {
     try {
       final result = await Process.run(
@@ -167,17 +240,17 @@ class GitEngine {
       return GitResult(
         success: result.exitCode == 0,
         output: result.stdout.toString().trim(),
-        error: result.stderr.toString().trim(),
+        error:  result.stderr.toString().trim(),
       );
     } catch (e) {
       return GitResult(success: false, output: '', error: e.toString());
     }
   }
 
-  // ─── Config (for auth via HTTPS token) ───────────────────────────────────────
+  // ─── Auth helpers ────────────────────────────────────────────────────────────
 
-  /// Inject GitHub token into the remote URL so push/pull works without a password prompt.
-  /// Format: https://token@github.com/owner/repo.git
+  /// Embeds the GitHub token into the remote URL so push/pull works over HTTPS
+  /// without a password prompt. Format: https://<token>@github.com/owner/repo.git
   Future<GitResult> setRemoteWithToken(String owner, String repo, String token) {
     final url = 'https://$token@github.com/$owner/$repo.git';
     return setRemoteUrl(url);

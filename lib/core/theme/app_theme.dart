@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// DevGate Design System — Single source of truth for all visual tokens.
-/// 
-/// Usage:
-///   AppTheme.surface        → background color
-///   AppTheme.accent         → primary action color
-///   AppTheme.darkTheme      → full ThemeData for MaterialApp
 class AppTheme {
   AppTheme._(); // prevent instantiation
 
@@ -19,15 +15,30 @@ class AppTheme {
   static const Color divider     = Color(0xFF334155);  // secondary dividers
 
   // ─── Semantic Colors ───────────────────────────────────────────────────────
-  static const Color success     = Colors.green;
-  static const Color danger      = Colors.redAccent;
-  static const Color warning     = Colors.orangeAccent;
-  static const Color info        = Colors.blueAccent;
+  static const Color success     = Color(0xFF10B981); // Emerald 500
+  static const Color danger      = Color(0xFFEF4444); // Red 500
+  static const Color warning     = Color(0xFFF59E0B); // Amber 500
+  static const Color info        = Color(0xFF3B82F6); // Blue 500
+  static const Color secretMask  = Color(0xFF2A1414); // Dark red-black for masked secrets
 
   // ─── Text Colors ───────────────────────────────────────────────────────────
   static const Color textPrimary   = Colors.white;
   static const Color textSecondary = Colors.white70;
   static const Color textMuted     = Colors.grey;
+
+  // ─── Typography (Type Scale) ───────────────────────────────────────────────
+  static TextStyle get codeStyle => GoogleFonts.jetBrainsMono(
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    color: textSecondary,
+  );
+
+  static TextTheme get _textTheme => GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
+    displaySmall: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w600, color: textPrimary),
+    titleMedium: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary),
+    bodyMedium: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400, color: textPrimary),
+    labelSmall: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: textSecondary, letterSpacing: 0.06),
+  );
 
   // ─── Opacity Helpers ───────────────────────────────────────────────────────
   /// Use these instead of .withOpacity() to avoid the deprecation
@@ -43,8 +54,8 @@ class AppTheme {
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: Colors.grey.shade400, fontSize: 12),
-      prefixIcon: Icon(icon, color: Colors.grey.shade500, size: 20),
+      labelStyle: const TextStyle(color: textMuted, fontSize: 12),
+      prefixIcon: Icon(icon, color: textMuted, size: 20),
       filled: true,
       fillColor: deepNavy,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -67,6 +78,7 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
+      textTheme: _textTheme,
       colorScheme: ColorScheme.fromSeed(
         seedColor: seedBlue,
         brightness: Brightness.dark,

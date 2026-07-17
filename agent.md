@@ -1,398 +1,273 @@
-<![CDATA[<div align="center">
+# DevGate — Agent Memory File
 
 ```
 ██████╗ ███████╗██╗   ██╗ ██████╗  █████╗ ████████╗███████╗
 ██╔══██╗██╔════╝██║   ██║██╔════╝ ██╔══██╗╚══██╔══╝██╔════╝
-██║  ██║█████╗  ██║   ██║██║  ███╗███████║   ██║   █████╗  
-██║  ██║██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══██║   ██║   ██╔══╝  
+██║  ██║█████╗  ██║   ██║██║  ███╗███████║   ██║   █████╗
+██║  ██║██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══██║   ██║   ██╔══╝
 ██████╔╝███████╗ ╚████╔╝ ╚██████╔╝██║  ██║   ██║   ███████╗
 ╚═════╝ ╚══════╝  ╚═══╝   ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝
 ```
 
-### ⚡ Desktop Security Intelligence Platform
-
-**`v1.0.0`** · Flutter Desktop · Riverpod 3.x · Pure Dart Engines
-
-*"Scan. Protect. Ship."*
-
-</div>
-
----
-
-> **📋 Agent Memory File** — This document is the single source of truth for any AI agent working on DevGate.
-> Every file path, pattern, and status has been verified against the live codebase.
+> **Single source of truth for any AI agent or contributor working on DevGate.**
+> Every path, pattern, and status is verified against the live codebase.
 >
-> **Last Verified:** `2026-07-05` · **SDK:** `^3.12.2` · **Path:** `/home/nikesh/Documents/flutter - ADBT/flutter-dev/devgate`
+> **Last Verified:** `2026-07-15` · **SDK:** `^3.12.2` · **Package:** `getediv` · **Version:** `1.0.0+1`
 
 ---
 
-## 🧬 Identity & Vision
+## 1. Identity & Mission
 
-DevGate is a **Flutter Desktop application** (Linux/macOS/Windows) that serves as a **local-first, decentralized security tool** for developers. It scans codebases for leaked secrets, provides architecture recommendations, and integrates directly with GitHub for secure code management — all without any centralized server or cloud dependency.
+**DevGate** is a **Flutter Desktop application** (Linux / macOS / Windows, mobile-responsive) that acts as a **local-first, decentralized security intelligence platform** for developers.
+
+| Dimension | Value |
+|---|---|
+| Package name | `getediv` |
+| Display name | `DevGate` |
+| Version | `1.0.0+1` |
+| Target platforms | Linux, macOS, Windows (primary); iOS, Android, Web (supported) |
+| State management | Riverpod 3.x (`NotifierProvider`) |
+| UI framework | Flutter + Material 3, dark theme |
+| Auth strategy | GitHub Personal Access Token stored via `flutter_secure_storage` |
+| External server | **None** — 100% local-first |
 
 ### Core Principles
 
 | Principle | Implementation |
-|-----------|---------------|
-| 🔒 **Zero Trust** | No PocketBase, no remote servers. Token stored via `flutter_secure_storage` on-device only |
-| 🧠 **Intelligence** | Shannon entropy analysis + 11 regex patterns (TruffleHog-inspired) |
-| 🛡️ **Pre-Push Guard** | Automatic secret scan before every `git push` — blocks if secrets detected |
-| 📦 **Self-Contained** | Git operations via local CLI wrapper, no external git GUI dependency |
-| 🎨 **Material 3** | Dark theme, Google Blue (`#4285F4`) seed, `#131314` surface |
+|---|---|
+| **Zero Trust** | No centralized server. PAT stored on-device via `flutter_secure_storage` |
+| **Pre-Push Guard** | Secret scan runs automatically before every `git push` |
+| **Dual-Engine Scanning** | Shannon entropy + 22 TruffleHog-inspired regex patterns |
+| **Self-Contained Git** | Git operations via `Process.run` CLI wrapper — no GUI dependencies |
+| **Material 3 Dark UI** | Google Blue `#4285F4` seed, `#131314` surface, custom title bar |
 
 ---
 
-## 🏛️ Architecture Blueprint
+## 2. Repository Map
 
 ```
-╔══════════════════════════════════════════════════════════════════╗
-║                         UI LAYER                                ║
-║  ┌──────────────┐  ┌──────────────┐  ┌─────────────────────┐   ║
-║  │ Onboarding   │  │  Dashboard   │  │   Git Panel          │   ║
-║  │ Screen       │  │  Screen      │  │   Screen             │   ║
-║  │ (first-run)  │  │  + DropZone  │  │   + Setup Wizard     │   ║
-║  │              │  │  + Report    │  │   + Commit Flow      │   ║
-║  └──────┬───────┘  └──────┬───────┘  └──────────┬──────────┘   ║
-║         │    ref.watch / ref.read                │              ║
-║         ▼                  ▼                     ▼              ║
-║  ┌─────────────────────────────────────────────────────────┐   ║
-║  │              RIVERPOD STATE LAYER                       │   ║
-║  │  scannerStateProvider ←── ScannerNotifier               │   ║
-║  │  gitProvider          ←── GitNotifier                   │   ║
-║  └────────────┬────────────────────────┬───────────────────┘   ║
-╠═══════════════╪════════════════════════╪═══════════════════════╣
-║               ▼                        ▼                       ║
-║  ┌──────────────────────┐  ┌───────────────────────────┐      ║
-║  │   SCANNER ENGINE     │  │      GIT ENGINE            │      ║
-║  │   ├─ RegexEngine     │  │      ├─ GitEngine          │      ║
-║  │   ├─ EntropyMath     │  │      │  (Process.run CLI)  │      ║
-║  │   └─ Finding model   │  │      └─ GitResult/GitFile  │      ║
-║  └──────────────────────┘  └───────────────────────────┐│      ║
-║                                                        ││      ║
-║  ┌──────────────────────┐  ┌───────────────────────────┘│      ║
-║  │   DATA LAYER         │  │      GITHUB CLIENT          │      ║
-║  │   └─ Finding (model) │  │      ├─ Device Flow auth    │      ║
-║  │                      │  │      ├─ Create repo (API)   │      ║
-║  │                      │  │      └─ Push report (API)   │      ║
-║  └──────────────────────┘  └─────────────────────────────┘      ║
-╚══════════════════════════════════════════════════════════════════╝
-```
-
----
-
-## 📁 File Map — Verified Source of Truth
-
-> ✅ = Implemented & Working · 🔲 = Planned/Not Yet Created
-
-```
-devgate/
-├── agent.md                                    ← THIS FILE (agent memory)
-├── pubspec.yaml                                ✅ All deps installed
-│
-└── lib/
-    ├── main.dart                               ✅ WindowManager + ProviderScope
-    │                                              RootScreen → checks secure storage
-    │                                              → OnboardingScreen (no profile)
-    │                                              → DashboardScreen (has profile)
-    │
-    ├── core/
-    │   └── constants/
-    │       └── github_constants.dart           ✅ clientId + scopes (placeholder)
-    │
-    ├── data/
-    │   ├── models/
-    │   │   └── finding.dart                    ✅ Finding class + FindingType + Severity enums
-    │   └── remote/
-    │       └── github_client.dart              ✅ Device Flow + pollForToken + pushReport + createRepository
-    │
-    ├── engines/
-    │   ├── git/
-    │   │   ├── git_engine.dart                 ✅ Full git CLI wrapper (init/add/commit/push/pull/clone/remote)
-    │   │   └── git_notifier.dart               ✅ GitNotifier + GitState + gitProvider
-    │   │
-    │   └── scanner/
-    │       ├── scanner_engine.dart              ✅ ScannerNotifier + line-by-line scan + skip noisy dirs
-    │       ├── regex_engine.dart                ✅ 11 patterns (AWS, Stripe, GH, Google, JWT, OpenAI, Slack, RSA, Twilio, SendGrid)
-    │       └── entropy_math.dart               ✅ Shannon entropy (threshold: 4.8)
-    │
-    └── ui/
-        ├── onboarding/
-        │   └── onboarding_screen.dart          ✅ Name + GitHub username + PAT → secure storage
-        │
-        ├── dashboard/
-        │   ├── dashboard_screen.dart           ✅ NavigationRail (Scanner | Git/GitHub) + draggable title bar
-        │   └── widgets/
-        │       └── drop_zone.dart              ✅ DropTarget + folder browse + scan trigger + report dashboard + JSON export
-        │
-        └── git/
-            └── git_panel_screen.dart           ✅ Project picker + setup wizard + commit flow + pre-push scanner
+getediv/
+├── lib/
+│   ├── main.dart                          # App entry point + RootScreen routing
+│   ├── core/
+│   │   ├── constants/
+│   │   │   └── github_constants.dart      # OAuth client_id + scopes
+│   │   ├── theme/
+│   │   │   └── app_theme.dart             # Full design system (colors, decorations, ThemeData)
+│   │   └── utils/                         # (empty — reserved for future helpers)
+│   ├── data/
+│   │   ├── models/
+│   │   │   └── finding.dart               # Finding, FindingType, Severity enums
+│   │   ├── remote/
+│   │   │   └── github_client.dart         # GitHub API: device flow, create repo, push report
+│   │   └── local/                         # (empty — storage handled by flutter_secure_storage)
+│   ├── engines/
+│   │   ├── git/
+│   │   │   ├── git_engine.dart            # GitEngine: Process.run wrapper for git CLI
+│   │   │   └── git_notifier.dart          # GitNotifier + GitState + gitProvider
+│   │   └── scanner/
+│   │       ├── scanner_engine.dart        # ScannerNotifier + ScannerState + scannerStateProvider
+│   │       ├── regex_engine.dart          # RegexEngine: 22 secret-detection patterns
+│   │       └── entropy_math.dart          # EntropyMath: Shannon entropy calculator
+│   └── ui/
+│       ├── onboarding/
+│       │   └── onboarding_screen.dart     # First-run setup (name, GitHub username, PAT)
+│       ├── dashboard/
+│       │   ├── dashboard_screen.dart      # Main shell: NavigationRail + page switching
+│       │   ├── widgets/
+│       │   │   └── drop_zone.dart         # Drag-and-drop scanner UI + results dashboard
+│       │   └── state/                     # (empty — scanner state lives in engines/)
+│       ├── git/
+│       │   └── git_panel_screen.dart      # Git operations UI (commit, push, pull, repo setup)
+│       └── logs/
+│           └── widgets/                   # (empty — reserved for future log viewer)
+├── assets/
+│   └── icon/
+│       └── app_icon.png                   # App icon (all platforms)
+├── pubspec.yaml                           # Dependencies + flutter_launcher_icons config
+└── analysis_options.yaml                  # Lint rules
 ```
 
 ---
 
-## ⚙️ Feature Matrix
+## 3. Key Providers
 
-### Phase 1 — Desktop Shell `✅ COMPLETE`
-
-| Feature | File | Details |
-|---------|------|---------|
-| Flutter Desktop window | `main.dart` | `window_manager` · 400×800 · hidden title bar |
-| Custom draggable title bar | `dashboard_screen.dart` | `GestureDetector` → `windowManager.startDragging()` |
-| Material 3 dark theme | `main.dart` | Seed: `#4285F4` · Surface: `#131314` · Rail: `#1E1E1E` |
-| Navigation Rail | `dashboard_screen.dart` | Scanner + Git/GitHub tabs · mobile bottom nav fallback |
-
-### Phase 2 — Scanner Engine `✅ COMPLETE`
-
-| Feature | File | Details |
-|---------|------|---------|
-| Regex secret scanner | `regex_engine.dart` | 11 patterns · returns `List<String>` of matched labels |
-| Shannon entropy calc | `entropy_math.dart` | `H = -Σ p·log₂(p)` · flags tokens with entropy > 4.8 |
-| Structured Finding model | `finding.dart` | `FindingType` {regex, entropy, recommendation} + `Severity` |
-| Line-by-line scanner | `scanner_engine.dart` | Splits by `\n`, scans each line, reports exact line numbers |
-| Multi-directory scan | `scanner_engine.dart` | `scanDirectories(List<String>)` — iterates all paths |
-| Noisy dir skip | `scanner_engine.dart` | Skips `.git`, `node_modules`, `.dart_tool`, `build`, `.pub-cache` |
-| File size guard | `scanner_engine.dart` | Skips files > 1GB |
-| Architecture recommendations | `scanner_engine.dart` | Detects `pubspec.yaml` / `package.json` → advice findings |
-| Drag-and-drop scan | `drop_zone.dart` | `desktop_drop` + `DropTarget` widget |
-| Browse folders | `drop_zone.dart` | `file_selector` → `getDirectoryPath()` |
-| Report dashboard | `drop_zone.dart` | Split view: vulnerabilities (left) + recommendations (right) |
-| JSON export | `drop_zone.dart` | `getSaveLocation()` → writes formatted JSON report |
-
-### Phase 3 — Onboarding & Auth `✅ COMPLETE`
-
-| Feature | File | Details |
-|---------|------|---------|
-| First-run onboarding | `onboarding_screen.dart` | Name + GitHub username + PAT input |
-| Secure storage | `main.dart` + onboarding | `flutter_secure_storage` · keys: `user_name`, `github_username`, `github_access_token` |
-| Profile gate | `main.dart` → `RootScreen` | Checks storage on init → routes to Onboarding or Dashboard |
-| Decentralized security notice | `onboarding_screen.dart` | Green banner explaining zero-server architecture |
-
-### Phase 4 — Git & GitHub Integration `✅ COMPLETE`
-
-| Feature | File | Details |
-|---------|------|---------|
-| Git CLI wrapper | `git_engine.dart` | `Process.run('git', ...)` · init/add/commit/push/pull/clone/remote |
-| Token-injected HTTPS remote | `git_engine.dart` | `https://$token@github.com/owner/repo.git` |
-| Git config (user.name/email) | `git_engine.dart` | `configUser()` method |
-| Git state management | `git_notifier.dart` | `GitState` + `GitNotifier` + `gitProvider` |
-| Project folder picker | `git_panel_screen.dart` | `file_selector` → loads project into `gitProvider` |
-| Auto `.gitignore` creation | `git_panel_screen.dart` | Creates standard `.gitignore` if missing on project load |
-| Link existing repo wizard | `git_panel_screen.dart` | Owner + Repo name → `setRemoteWithToken()` |
-| Create new repo wizard | `git_panel_screen.dart` | GitHub API `POST /user/repos` → auto-link |
-| Stage + Commit + Push flow | `git_panel_screen.dart` | Full commit pipeline with message input |
-| **Pre-push security scan** | `git_panel_screen.dart` | `_safePush()` — runs scanner → blocks if secrets found → shows dialog |
-| Token update dialog | `git_panel_screen.dart` | Settings icon → update PAT securely |
-| Profile badge sidebar | `git_panel_screen.dart` | Shows `@username` + recommendation cards + terminal output |
-| GitHub Device Flow auth | `github_client.dart` | `requestDeviceCode()` + `pollForToken()` |
-| Create repository API | `github_client.dart` | `POST /user/repos` with Bearer token |
-| Push scan report API | `github_client.dart` | `PUT /repos/.../contents/.devgate/scan-reports/` |
+| Provider | Type | Location | Purpose |
+|---|---|---|---|
+| `scannerStateProvider` | `NotifierProvider<ScannerNotifier, ScannerState>` | `engines/scanner/scanner_engine.dart` | Drives all scanning (regex + entropy) |
+| `gitProvider` | `NotifierProvider<GitNotifier, GitState>` | `engines/git/git_notifier.dart` | Drives all git operations |
 
 ---
 
-## 🔬 Scanner Engine — Technical Deep Dive
+## 4. Data Models
 
-### Scan Pipeline
-
-```
-User Action (Drop folder / Browse / Pre-push)
-     │
-     ▼
-ScannerNotifier.scanDirectories(List<String> paths)
-     │
-     ├─── For each directory path:
-     │      ├── Check pubspec.yaml → Flutter recommendation Finding
-     │      ├── Check package.json → Node.js recommendation Finding
-     │      │
-     │      └── dir.list(recursive: true)
-     │            │
-     │            ├── _isProbablyTextFile(path)
-     │            │     Scans: .dart .js .ts .json .yaml .yml .env
-     │            │
-     │            ├── Skip check: file > 1GB → skip
-     │            ├── Skip check: path contains skipDirs → skip
-     │            │     {.git, node_modules, .dart_tool, build, .pub-cache}
-     │            │
-     │            └── Read file → split('\n') → for each line:
-     │                  │
-     │                  ├── RegexEngine.scanText(line)
-     │                  │     11 patterns → Finding(type: regex)
-     │                  │
-     │                  └── Entropy scan per token
-     │                        token.length > 16 && no { } chars
-     │                        EntropyMath.calculateEntropy(token)
-     │                        threshold > 4.8 → Finding(type: entropy)
-     │
-     └─── State update: ScannerState(findings: allFindings)
+### `Finding` (`data/models/finding.dart`)
+```dart
+class Finding {
+  final FindingType type;        // regex | entropy | recommendation
+  final String label;            // Human-readable name (e.g. "AWS Access Key ID")
+  final String filePath;
+  final int lineNumber;
+  final String snippet;          // The matching line or token
+  final double? entropyScore;    // Set for entropy findings
+  final Severity severity;       // critical | high | medium | low
+  final DateTime detectedAt;
+}
 ```
 
-### Regex Patterns (11 total)
-
-| # | Pattern Name | Regex Signature | Case Sensitive |
-|---|-------------|-----------------|----------------|
-| 1 | AWS Access Key ID | `AKIA[A-Z0-9]{16}` | Yes |
-| 2 | AWS Secret Access Key | `aws_secret_access_key\s*=...` | **No** |
-| 3 | Stripe Standard API Key | `sk_live_[0-9a-zA-Z]{24}` | Yes |
-| 4 | Stripe Restricted API Key | `rk_live_[0-9a-zA-Z]{24}` | Yes |
-| 5 | GitHub PAT | `ghp_[0-9a-zA-Z]{36}` | Yes |
-| 6 | Google API Key | `AIza[0-9A-Za-z_-]{35}` | Yes |
-| 7 | Generic JWT | `eyJ[...]{10,}.[...]{10,}.[...]{10,}` | Yes |
-| 8 | OpenAI API Key | `sk-[A-Za-z0-9]{48}` | Yes |
-| 9 | Slack Bot Token | `xoxb-[0-9]{11}-[0-9]{11}-...` | Yes |
-| 10 | RSA Private Key | `-----BEGIN RSA PRIVATE KEY-----` | Yes |
-| 11 | Twilio API Key | `SK[0-9a-fA-F]{32}` | Yes |
-| 12 | SendGrid API Key | `SG\.[...]{22}\.[...]{43}` | Yes |
-
----
-
-## 🐙 Git Integration — How It Works
-
-### Authentication Model
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    ONBOARDING (First Run)                    │
-│                                                             │
-│    User enters:  Full Name                                  │
-│                  GitHub Username                            │
-│                  GitHub PAT (Personal Access Token)          │
-│                        │                                    │
-│                        ▼                                    │
-│              flutter_secure_storage                         │
-│              ┌─────────────────────────┐                   │
-│              │ user_name        → name │                   │
-│              │ github_username  → user │                   │
-│              │ github_access_token → ** │                   │
-│              └─────────────────────────┘                   │
-│                        │                                    │
-│                        ▼                                    │
-│              Token injected into HTTPS remote URL            │
-│              https://{token}@github.com/owner/repo.git      │
-└─────────────────────────────────────────────────────────────┘
+### `GitFile` (`engines/git/git_engine.dart`)
+```dart
+class GitFile {
+  final String status;           // 'M', 'A', 'D', '?', 'R'
+  final String path;
+  String get statusLabel;        // 'Modified', 'Added', 'Deleted', 'Untracked', 'Renamed'
+}
 ```
 
-### Pre-Push Security Flow
-
-```
-User clicks "Push to Remote"
-     │
-     ├── 1. Run full scanner on project directory
-     │
-     ├── 2. Filter findings: exclude FindingType.recommendation
-     │
-     ├── 3. If secrets found:
-     │       → Show AlertDialog with red warning
-     │       → "Found N potential secrets"
-     │       → Block push entirely
-     │       → User must clean secrets first
-     │
-     └── 4. If clean:
-             → Execute git push via GitEngine
-             → Show success in terminal output
+### `GitState` (`engines/git/git_notifier.dart`)
+```dart
+class GitState {
+  final bool isGitRepo;
+  final String currentBranch;
+  final String remoteUrl;
+  final String recentLog;
+  final List<GitFile> changedFiles;
+  final GitOperation operation;  // idle | staging | committing | pushing | pulling | cloning
+  final String operationOutput;
+  final bool hasError;
+}
 ```
 
 ---
 
-## 📦 Dependencies — Verified from `pubspec.yaml`
+## 5. Scanner Engine Details
 
-| Package | Version | Purpose | Status |
-|---------|---------|---------|--------|
-| `flutter_riverpod` | `^3.3.2` | State management (Notifier pattern) | ✅ Installed |
-| `window_manager` | `^0.5.1` | Custom title bar + window drag | ✅ Installed |
-| `desktop_drop` | `^0.7.1` | Drag-and-drop folder input | ✅ Installed |
-| `cross_file` | `^0.3.5+2` | File abstraction | ✅ Installed |
-| `dio` | `^5.10.0` | GitHub API HTTP client | ✅ Installed |
-| `flutter_secure_storage` | `^10.3.1` | Encrypted local token storage | ✅ Installed |
-| `url_launcher` | `^6.3.2` | Open URLs in browser | ✅ Installed |
-| `file_selector` | `^1.1.0` | Native folder/file picker dialogs | ✅ Installed |
+### RegexEngine — 22 Patterns (`engines/scanner/regex_engine.dart`)
+
+| Category | Patterns Covered |
+|---|---|
+| Cloud Providers | AWS Access Key ID, AWS Secret Key, Google API Key, Azure Storage Key, Firebase Config, Supabase Key |
+| Payment | Stripe Standard Key, Stripe Restricted Key |
+| AI / LLM | OpenAI API Key, Anthropic API Key |
+| Version Control | GitHub PAT, GitHub Fine-Grained PAT, npm Token |
+| Messaging | Slack Bot Token, Discord Bot Token, Twilio API Key, SendGrid API Key, Mailgun API Key |
+| Infrastructure | Heroku API Key |
+| Cryptographic | RSA Private Key, Generic Private Key, Generic JWT |
+
+### EntropyMath (`engines/scanner/entropy_math.dart`)
+- Implements **Shannon entropy**: `H = -Σ p(x) log₂ p(x)`
+- Default threshold: **4.8 bits** (configurable in `scanDirectories()`)
+- Only tokens with `length > 16` and no `{` or `}` are evaluated (reduces false positives)
+
+### Scanner Skip List
+Directories automatically excluded from scans: `.git`, `node_modules`, `.dart_tool`, `build`, `.pub-cache`
+
+### Supported File Types
+`.dart`, `.js`, `.ts`, `.json`, `.yaml`, `.yml`, `.txt`, `.md`, `.env`
 
 ---
 
-## 🎨 Design System
+## 6. Git Engine Operations (`engines/git/git_engine.dart`)
+
+| Method | Git Command |
+|---|---|
+| `isGitRepo()` | `git rev-parse --is-inside-work-tree` |
+| `getRepoRoot()` | `git rev-parse --show-toplevel` |
+| `status()` | `git status --porcelain -uall` |
+| `currentBranch()` | `git rev-parse --abbrev-ref HEAD` |
+| `remoteUrl()` | `git remote get-url origin` |
+| `log(count)` | `git log --oneline -N` |
+| `addAll()` | `git add .` |
+| `addFile(path)` | `git add <path>` |
+| `addFiles(paths)` | `git add <path1> <path2> ...` |
+| `resetFile(path)` | `git restore --staged <path>` |
+| `commit(msg)` | `git commit -m <message>` |
+| `push()` | `git push origin <branch>` |
+| `pull()` | `git pull origin <branch>` |
+| `init()` | `git init --initial-branch=main` |
+| `addRemote(url)` | `git remote add origin <url>` |
+| `setRemoteUrl(url)` | `git remote set-url origin <url>` |
+| `clone(url, dest)` | `git clone <url> <dest>` (static) |
+| `configUser(name, email)` | `git config user.name / user.email` |
+| `setRemoteWithToken(...)` | Injects token into HTTPS remote URL |
+
+---
+
+## 7. GitHub Client (`data/remote/github_client.dart`)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `requestDeviceCode()` | `POST /login/device/code` | Starts Device Flow OAuth |
+| `pollForToken(code, interval)` | `POST /login/oauth/access_token` | Polls until user authorizes |
+| `createRepository(name)` | `POST /user/repos` | Creates GitHub repo (private by default) |
+| `pushReport(owner, repo, data)` | `PUT /repos/:owner/:repo/contents/.devgate/scan-reports/:file` | Commits JSON report to repo |
+
+**Token storage key:** `github_access_token` (via `flutter_secure_storage`)
+**OAuth client ID location:** `core/constants/github_constants.dart` → `GitHubConstants.clientId`
+
+> ⚠️ `clientId` is currently a placeholder `'YOUR_OAUTH_APP_CLIENT_ID'` — must be set before Device Flow auth works.
+
+---
+
+## 8. Screen Routing
 
 ```
-Theme: Material 3 Dark
-├── Seed Color:      #4285F4  (Google Blue)
-├── Surface:         #131314  (near-black)
-├── Card/Panel:      #1E1E1E  (elevated surface)
-├── Border:          #3C4043  (subtle dividers)
-├── Accent:          #8AB4F8  (light blue — buttons, highlights)
-├── Loading BG:      #0F172A  (deep navy — splash/headers)
-├── Success:         Colors.green / Colors.greenAccent
-├── Danger:          Colors.redAccent
-├── Warning:         Colors.orangeAccent
-└── Text:
-    ├── Primary:     Colors.white
-    ├── Secondary:   Colors.white70
-    └── Muted:       Colors.grey / Colors.grey.shade400
+App Start
+  └─ main() → ProviderScope → DevGateApp → RootScreen
+       ├─ checks flutter_secure_storage for 'user_name' + 'github_access_token'
+       ├─ if missing → OnboardingScreen (first-run setup)
+       └─ if present → DashboardScreen
+            ├─ [0] Scanner tab → DropZoneWidget (scan + report dashboard)
+            └─ [1] Git/GitHub tab → GitPanelScreen (git operations + repo management)
 ```
 
 ---
 
-## 🚀 Roadmap — What's Next
+## 9. Theme Design Tokens (`core/theme/app_theme.dart`)
 
-### Phase 5 — Polish & Power Features
-
-- [x] **[Theme]** Extract all colors into `lib/core/theme/app_theme.dart` — eliminate hardcoded hex values
-- [x] **[Scanner]** Add `.txt` and `.md` file scanning (currently excluded to reduce noise)
-- [x] **[Scanner]** Configurable entropy threshold (currently hardcoded at 4.8)
-- [x] **[Scanner]** Add patterns: Anthropic keys, Azure keys, Firebase tokens, Supabase keys
-- [ ] **[Git]** Pull request support — show remote/local diff before push
-- [ ] **[Git]** Branch management — create/switch/delete branches from UI
-- [ ] **[UI]** Settings screen — manage token, scan preferences, theme toggle
-- [ ] **[UI]** Animated scan progress bar (replace simple `CircularProgressIndicator`)
-
-### Phase 6 — Persistence & Analytics
-
-- [ ] **[Data]** Add Isar/Hive DB for persistent scan history
-- [ ] **[Data]** SecurityLog schema — track all scans with timestamps
-- [ ] **[Analytics]** Scan trends dashboard — findings over time chart
-- [ ] **[Export]** CSV/PDF export options alongside JSON
-
-### Phase 7 — Advanced Intelligence
-
-- [ ] **[Proxy]** Revive HTTP proxy engine (`shelf` + `shelf_proxy` — deps exist, UI not wired)
-- [ ] **[Proxy]** Real-time header/payload inspection
-- [ ] **[AI]** Local LLM integration for code review suggestions
-- [ ] **[Watch]** Background `FileSystemEntity.watch()` for real-time monitoring
+| Token | Value | Usage |
+|---|---|---|
+| `surface` | `#131314` | Main scaffold background |
+| `card` | `#1E1E1E` | Elevated card surfaces |
+| `border` | `#3C4043` | Subtle dividers |
+| `accent` | `#8AB4F8` | Primary action color (light blue) |
+| `seedBlue` | `#4285F4` | Google Blue — navigation indicator |
+| `deepNavy` | `#0F172A` | Headers, stat bar background |
+| `divider` | `#334155` | Secondary dividers |
+| `success` | `Colors.green` | Positive states |
+| `danger` | `Colors.redAccent` | Risks, errors |
+| `warning` | `Colors.orangeAccent` | Warnings |
+| `info` | `Colors.blueAccent` | Informational |
 
 ---
 
-## ⚠️ Known Issues & Gotchas
+## 10. Dependency Reference
 
-| # | Issue | Location | Severity |
-|---|-------|----------|----------|
-| 1 | `github_constants.dart` has placeholder `clientId` | `core/constants/` | 🔴 Must replace before Device Flow works |
-| 2 | `git_panel_screen.dart` has invalid relative import | Line 9: `../../../engines/` should be `../../engines/` | 🟡 May cause compile error |
-| 3 | Proxy server code removed from file tree | Was `shelf`+`shelf_proxy` — deps still in pubspec | 🟢 Low — can rebuild |
-| 4 | No error boundary on `_exportJson` map syntax | `drop_zone.dart` L378: `map` closure uses `{ }` not `=> { }` — may silently produce null entries | 🟡 Medium |
-| 5 | `withOpacity()` deprecation warnings | Multiple files | 🟢 Low — cosmetic |
-
----
-
-## 🧭 Agent Instructions
-
-When working on this codebase, follow these rules:
-
-1. **State Management** — Always use Riverpod `Notifier` pattern. No `StateProvider`, no `ChangeNotifier`.
-2. **File Naming** — `snake_case.dart` for everything. Features go in `lib/ui/{feature}/`.
-3. **No Server Calls** — DevGate is 100% local. Never add PocketBase, Supabase, or any centralized backend.
-4. **Secure Storage** — All sensitive data (tokens, PATs) goes through `FlutterSecureStorage`. Never write tokens to plaintext files.
-5. **Git Operations** — Always use `GitEngine` wrapper (which uses `Process.run`). Never shell out directly from UI code.
-6. **Theme Colors** — Use the design system palette above. Primary accent is `#8AB4F8`, surface is `#131314`.
-7. **Imports** — Use relative imports within the project. No `package:devgate/` self-imports.
+| Package | Version | Purpose |
+|---|---|---|
+| `flutter_riverpod` | `^3.3.2` | State management |
+| `window_manager` | `^0.5.1` | Desktop window control (custom title bar, drag) |
+| `desktop_drop` | `^0.7.1` | Drag-and-drop folder support |
+| `cross_file` | `^0.3.5+2` | Cross-platform file abstraction |
+| `dio` | `^5.10.0` | HTTP client for GitHub API calls |
+| `flutter_secure_storage` | `^10.3.1` | Encrypted on-device token storage |
+| `url_launcher` | `^6.3.2` | Open URLs (GitHub OAuth pages) |
+| `file_selector` | `^1.1.0` | Native folder/file picker dialogs |
+| `cupertino_icons` | `^1.0.8` | iOS-style icons |
 
 ---
 
-<div align="center">
+## 11. Known Gaps & Future Work
 
-```
-┌─────────────────────────────────────────────┐
-│                                             │
-│   Built with 🛡️ by the DevGate team         │
-│   Security-first. Local-first. Always.      │
-│                                             │
-└─────────────────────────────────────────────┘
-```
-
-</div>
-]]>
+| Area | Status | Notes |
+|---|---|---|
+| `lib/core/utils/` | Empty | Intended for shared helper utilities |
+| `lib/data/local/` | Empty | Local persistence beyond secure storage |
+| `lib/ui/logs/widgets/` | Empty | Log viewer UI not yet implemented |
+| `lib/ui/dashboard/state/` | Empty | Scanner state lives in `engines/` — may be reorganized |
+| `GitHubConstants.clientId` | Placeholder | Must be replaced with a real GitHub OAuth App Client ID |
+| Device Flow OAuth | Built, not wired to UI | `GitHubClient.requestDeviceCode()` exists but the UI trigger is not implemented |
+| Error handling | Minimal | `print()` calls throughout — needs structured logging |
+| Tests | Minimal | `test/` directory exists but is essentially empty |
+| Entropy threshold | Hardcoded `4.8` | Should be user-configurable |
+| File size limit bug | `> 1000 * 1024 * 1024` = 1 GB | Likely meant `> 1 * 1024 * 1024` (1 MB) |

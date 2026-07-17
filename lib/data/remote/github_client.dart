@@ -79,6 +79,7 @@ class GitHubClient {
       );
       return true;
     } catch (e) {
+      // ignore: avoid_print
       print('Failed to push report: $e');
       return false;
     }
@@ -105,6 +106,7 @@ class GitHubClient {
       );
       return true;
     } catch (e) {
+      // ignore: avoid_print
       print('Failed to create repo: $e');
       return false;
     }
